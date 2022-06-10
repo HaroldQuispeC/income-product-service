@@ -30,5 +30,5 @@ public interface CreditCardService {
 
     Flux<Object> findByBusinessClientId(String id);
 
-    Mono<CreditCard> findByPersonClientId(String id);
+    Flux<CreditCard> findByPersonClientId(String id);
 }

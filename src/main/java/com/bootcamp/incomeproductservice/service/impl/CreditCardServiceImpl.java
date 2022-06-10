@@ -1,9 +1,13 @@
 package com.bootcamp.incomeproductservice.service.impl;
 
+import com.bootcamp.incomeproductservice.exceptions.ModelException;
+import com.bootcamp.incomeproductservice.model.Client;
+import com.bootcamp.incomeproductservice.model.Constant;
 import com.bootcamp.incomeproductservice.model.Credit;
 import com.bootcamp.incomeproductservice.model.CreditCard;
 import com.bootcamp.incomeproductservice.repository.CreditCardRepository;
 import com.bootcamp.incomeproductservice.repository.CreditRepository;
+import com.bootcamp.incomeproductservice.service.ClientService;
 import com.bootcamp.incomeproductservice.service.CreditCardService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,11 +17,15 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CreditCardServiceImpl implements CreditCardService {
 
     private static final Logger logger = LoggerFactory.getLogger(CreditCardServiceImpl.class);
+
+    @Autowired
+    ClientService feignClientClient ;
 
     @Autowired
     CreditCardRepository creditCardRepository;
@@ -50,9 +58,40 @@ public class CreditCardServiceImpl implements CreditCardService {
         return creditCardRepository.findAll().filter(c-> c.isActive());
     }
 
+    /**
+     * Find credit cards associated to Person Clients by id
+     * @param id
+     * @return Single Credit card object
+     */
     @Override
-    public Mono<CreditCard> findByPersonClientId(String id) {
-        return null;
+    public Flux<CreditCard> findByPersonClientId(String id) {
+        List<Client> clients = feignClientClient.getClients();
+        if(clients.isEmpty()){
+            throw new ModelException("No clients found");
+        }
+
+        id = id.isEmpty() ? "" : id.trim();
+        final String _id = id;
+
+        if(_id == "")
+            throw new ModelException("Invalid Id");
+
+        boolean exists = clients.stream().anyMatch(x -> x.getClientType().trim().equals("1")
+                         && x.getIdClient().equals(_id));
+
+        if(!exists){
+            throw new ModelException("No personal clients found");
+        }
+
+        logger.info("Credit cards associated to Person Clients by id");
+
+        return creditRepository.findAll().
+                filter(x->x.getClientID().equals(_id)).
+                flatMap(y-> creditCardRepository.
+                          findAll().
+                          filter(z -> z.getCreditID().equals(y.getCreditID())));
+
+
     }
 
     @Override
@@ -82,16 +121,40 @@ public class CreditCardServiceImpl implements CreditCardService {
         return Mono.just("remove " + id).then();
     }
 
+    /**
+     * Find business clients by clientId
+     * @param clientID
+     * @return Multiple objects
+     */
     @Override
     public Flux<Object> findByBusinessClientId(String clientID) {
-        logger.info("Find credit cards by Business Client ");
-        Mono<List<Credit>> credits = creditRepository.findAll().
-                                filter(c-> c.isActive() && c.getClientID() == clientID).collectList();
+        List<Client> clients = feignClientClient.getClients();
+        if(clients.isEmpty()){
+            throw new ModelException("No clients found");
+        }
 
-       Flux<Object> creditCardFlux = credits.flatMapMany(c-> creditRepository.findAll().
-                                        filter(x-> c.contains( x.getCreditID()) ));
+        clientID = clientID.isEmpty() ? "" : clientID.trim();
+        final String _id = clientID;
 
-       return creditCardFlux;
+        if(_id == "")
+            throw new ModelException("Invalid Id");
+
+        boolean exists = clients.stream().anyMatch(x -> x.getClientType().trim().
+                equals(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.type)
+                && x.getIdClient().equals(_id));
+
+        if(!exists){
+            throw new ModelException("No business clients found");
+        }
+
+        logger.info("Find credit cards associated to Business Client by id");
+
+        return creditRepository.findAll().
+                filter(x->x.getClientID().trim().equals(_id)).
+                flatMap(y-> creditCardRepository.
+                        findAll().
+                        filter(z -> z.getCreditID().trim().equals(y.getCreditID().trim())));
+
     }
 
     @Override

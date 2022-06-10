@@ -56,8 +56,8 @@ public class CreditServiceImpl implements CreditService {
             }
 
             List<String> types = new ArrayList<>();
-            types.add(Constant.IncomeAccountTypeId.PERSONAL_CREDIT_ID.toString());
-            types.add(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.toString());
+            types.add(Constant.IncomeAccountTypeId.PERSONAL_CREDIT_ID.type);
+            types.add(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.type);
 
             if(types.contains(incomeAccountTypeID))
             {

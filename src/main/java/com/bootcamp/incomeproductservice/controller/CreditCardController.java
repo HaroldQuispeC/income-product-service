@@ -30,6 +30,11 @@ public class CreditCardController {
         return creditCardService.findByBusinessClientId(id);
     }
 
+    @GetMapping("/person-client/{id}")
+    public Flux<CreditCard> findByPersonClientId(@PathVariable("id") String id) {
+        return creditCardService.findByPersonClientId(id);
+    }
+
     @PostMapping
     public Mono<CreditCard> create(@RequestBody CreditCard card) {
         return creditCardService.create(card);
