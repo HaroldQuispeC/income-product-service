@@ -3,7 +3,6 @@ package com.bootcamp.incomeproductservice.service.impl;
 import com.bootcamp.incomeproductservice.exceptions.ModelException;
 import com.bootcamp.incomeproductservice.model.Client;
 import com.bootcamp.incomeproductservice.model.Constant;
-import com.bootcamp.incomeproductservice.model.Credit;
 import com.bootcamp.incomeproductservice.model.CreditCard;
 import com.bootcamp.incomeproductservice.repository.CreditCardRepository;
 import com.bootcamp.incomeproductservice.repository.CreditRepository;
@@ -15,9 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CreditCardServiceImpl implements CreditCardService {

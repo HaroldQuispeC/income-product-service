@@ -1,19 +1,20 @@
 package com.bootcamp.incomeproductservice.model;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.Date;
+import java.util.List;
 
 @Data
 public class Client {
     private String idClient;
-    private String joiningDate;
+    private Date joiningDate;
     private String country;
     private String address;
     private String clientType;
     private String status;
-    private Business business;
+    private List<String> phones;
+    private List<String> emails;
     private NaturalPerson naturalPerson;
+    private Business business;
 }
