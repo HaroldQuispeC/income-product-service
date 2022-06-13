@@ -24,7 +24,7 @@ public interface CreditCardService {
 
     Mono<Void> remove(String id);
 
-    Mono<Void> remove(CreditCard crad);
+    Mono<Void> remove(CreditCard card);
 
     Mono<Void> inactive(String id);
 

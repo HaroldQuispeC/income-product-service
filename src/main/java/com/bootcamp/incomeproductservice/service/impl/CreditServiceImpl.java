@@ -1,14 +1,13 @@
 package com.bootcamp.incomeproductservice.service.impl;
 
-
-import com.bootcamp.incomeproductservice.exceptions.ExceptionResponse;
 import com.bootcamp.incomeproductservice.exceptions.ModelException;
+import com.bootcamp.incomeproductservice.model.Client;
 import com.bootcamp.incomeproductservice.model.Constant;
 import com.bootcamp.incomeproductservice.model.Credit;
 import com.bootcamp.incomeproductservice.model.IncomeAccountType;
-import com.bootcamp.incomeproductservice.model.dto.CreditDto;
 import com.bootcamp.incomeproductservice.repository.CreditRepository;
 import com.bootcamp.incomeproductservice.repository.IncomeAccountTypeRepository;
+import com.bootcamp.incomeproductservice.service.ClientService;
 import com.bootcamp.incomeproductservice.service.CreditService;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -18,11 +17,15 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CreditServiceImpl implements CreditService {
 
     private static final Logger logger = LoggerFactory.getLogger(CreditServiceImpl.class);
+
+    @Autowired
+    ClientService feignClientClient ;
 
     @Autowired
     CreditRepository creditRepository;
@@ -71,16 +74,9 @@ public class CreditServiceImpl implements CreditService {
                                                    c.getIncomeAccountType().getIncomeAccountTypeID().equalsIgnoreCase(incomeAccountTypeID)
                                             ).count();
 
-            /* validacion de numero de productos activs por tipo de cliente
+            /* validacion de numero de productos activos por tipo de cliente
             long max;
-            Function<IncomeAccountType, String> mapper = new Function<IncomeAccountType, String>() {
-                @Override
-                public String apply(IncomeAccountType incomeAccountType) {
 
-                }
-            };
-            maxIncomes.map(mapper);
-            //countCreditsByClient.subscribe( x->x.longValue() <= maxIncomes.subscribe() );
             */
 
         }
@@ -108,17 +104,17 @@ public class CreditServiceImpl implements CreditService {
     }
 
     public  Flux<Credit> findByBusinessClientId(String id){
-        logger.info("Find credits by Business Client ");
+        logger.info("Find credit (income-product) by Business Client");
         return creditRepository.findAll().
                 filter(c-> c.isActive() && c.getClientID().equalsIgnoreCase(id) &&
-                       c.getIncomeAccountType().getIncomeAccountTypeID().equals("2") );
+                       c.getIncomeAccountType().getIncomeAccountTypeID().equals(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.type));
     }
 
     public  Mono<Credit> findByPersonClientId(String id){
-        logger.info("Find credits by Person Client ");
+        logger.info("Find credit (income-product) by Person Client");
         return creditRepository.findAll().filter(c-> c.isActive() && c.getClientID().equalsIgnoreCase(id) &&
-                        c.getIncomeAccountType().getIncomeAccountTypeID().equals("1")
-                        ).take(1).single();
+                        c.getIncomeAccountType().getIncomeAccountTypeID().equals(Constant.IncomeAccountTypeId.PERSONAL_CREDIT_ID.type)
+                        ).singleOrEmpty();
     }
 
     /*
@@ -175,9 +171,41 @@ public class CreditServiceImpl implements CreditService {
                 });
     }
 
+    /**
+     *
+     * @param name
+     * @return
+     */
     @Override
     public Flux<Credit> fetchCreditsByClientName(String name) {
         logger.info("Fetch credits entity by client");
-        return null;
+
+        List<Client> clients = feignClientClient.getClients();
+        if(clients.isEmpty())
+            throw new ModelException("No clients found");
+
+        Optional<Client> optBusiness = clients.stream().filter( client ->
+               client.getClientType().equals(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.type) &&
+                       client.getBusiness().getBusinessName().toLowerCase().contains(name.toLowerCase())).findFirst();
+
+        Optional<Client> optPersonal = clients.stream().filter(client ->
+                client.getClientType().equals(Constant.IncomeAccountTypeId.PERSONAL_CREDIT_ID.type) &&
+                client.getNaturalPerson().getName().toLowerCase().concat(" " + client.getNaturalPerson().getLastName()).toLowerCase().contains(name.toLowerCase())).findFirst();
+
+        if(!optBusiness.isPresent() && !optPersonal.isPresent())
+            throw new ModelException("No clients found");
+
+        if(optBusiness.isPresent())
+        {
+           return  findByBusinessClientId(optBusiness.get().getIdClient());
+
+        }
+
+        if(optPersonal.isPresent())
+        {
+            return findByPersonClientId(optPersonal.get().getIdClient()).flux();
+        }
+
+        return Flux.empty();
     }
 }

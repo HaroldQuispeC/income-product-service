@@ -25,4 +25,6 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
         logger.error(model.getMessage() + " - " + Arrays.toString(model.getStackTrace()));
         return new ResponseEntity<>(exception, HttpStatus.NOT_FOUND);
     }
+
+
 }

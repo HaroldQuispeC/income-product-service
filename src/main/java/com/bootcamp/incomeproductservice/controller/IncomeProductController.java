@@ -28,10 +28,7 @@ public class IncomeProductController {
 
     @GetMapping("/search")
     public Flux<Credit> fetchCreditsByClientName(@RequestParam(value = "name",required = true) String name) {
-        // (1) llamar al microservicio de cliente por nombre
-        // (2) hacer match  del resultado con los creditos
-        // (3) return creditService.fetchCustomersByName(name);
-        return  null;
+        return   creditService.fetchCreditsByClientName(name);
     }
 
     @GetMapping("/business-client/{id}")

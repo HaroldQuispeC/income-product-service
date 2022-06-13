@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class Client {
     private String idClient;
-    private Date joiningDate;
+    private String joiningDate;
     private String country;
     private String address;
     private String clientType;

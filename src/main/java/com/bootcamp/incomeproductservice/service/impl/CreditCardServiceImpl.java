@@ -125,6 +125,8 @@ public class CreditCardServiceImpl implements CreditCardService {
      */
     @Override
     public Flux<Object> findByBusinessClientId(String clientID) {
+        logger.info("Find credit cards associated to Business Client by id");
+
         List<Client> clients = feignClientClient.getClients();
         if(clients.isEmpty()){
             throw new ModelException("No clients found");
@@ -144,8 +146,6 @@ public class CreditCardServiceImpl implements CreditCardService {
             throw new ModelException("No business clients found");
         }
 
-        logger.info("Find credit cards associated to Business Client by id");
-
         return creditRepository.findAll().
                 filter(x->x.getClientID().trim().equals(_id)).
                 flatMap(y-> creditCardRepository.
@@ -156,6 +156,8 @@ public class CreditCardServiceImpl implements CreditCardService {
 
     @Override
     public Mono<Void> inactive(String id) {
+        logger.info("Set credit card to inactive state");
+
        return creditCardRepository.findById(id).
                flatMap(card -> {
                    card.setActive(false);
