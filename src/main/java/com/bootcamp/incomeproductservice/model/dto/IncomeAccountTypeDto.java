@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class IncomeAccountTypeDto {
 
-    private long incomeAccountTypeID;
-    private String incomeAccountDescription;
-    private int maximumProductsAllowed;
+  private long incomeAccountTypeID;
+  private String incomeAccountDescription;
+  private int maximumProductsAllowed;
 }

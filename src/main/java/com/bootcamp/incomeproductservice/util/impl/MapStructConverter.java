@@ -9,15 +9,14 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper
 public interface MapStructConverter extends DtoConverter {
-    MapStructConverter MAPPER = Mappers.getMapper(MapStructConverter.class);
 
+  MapStructConverter MAPPER = Mappers.getMapper(MapStructConverter.class);
 
-    @Override
-    Credit convert(CreditDto creditDto);
+  @Override
+  Credit convert(CreditDto creditDto);
 
-    @Override
-    CreditDto convert(Credit credit);
-
+  @Override
+  CreditDto convert(Credit credit);
 
 }
 

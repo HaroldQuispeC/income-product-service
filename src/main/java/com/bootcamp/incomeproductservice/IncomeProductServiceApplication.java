@@ -8,8 +8,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients
 public class IncomeProductServiceApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(IncomeProductServiceApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(IncomeProductServiceApplication.class, args);
+  }
 
 }

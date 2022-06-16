@@ -1,40 +1,39 @@
 package com.bootcamp.incomeproductservice.service;
 
 import com.bootcamp.incomeproductservice.model.Credit;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 @Service
- public interface CreditService {
+public interface CreditService {
 
-     Mono<Credit> create(Credit credit);
+  Mono<Credit> create(Credit credit);
 
-     Mono<Void> createList(List<Credit> credits);
-    
-     Mono<Credit> findById(String creditID);
+  Mono<Void> createList(List<Credit> credits);
 
-     //Mono<CreditDto> findDtoById(String creditID);
+  Mono<Credit> findById(String creditID);
 
-     Flux<Credit> findAll();
-    
-     Mono<Credit> update(Credit credit);
+  //Mono<CreditDto> findDtoById(String creditID);
 
-     Mono<Credit> change(Credit credit);
-    
-     Mono<Void> remove(String creditID);
+  Flux<Credit> findAll();
 
-     Mono<Void> remove(Credit credit);
+  Mono<Credit> update(Credit credit);
 
-     Mono<Void> inactive(String id);
+  Mono<Credit> change(Credit credit);
 
-     Flux<Credit> fetchCreditsByClientName(String name);
+  Mono<Void> remove(String creditID);
 
-     Flux<Credit> findByBusinessClientId(String clientID);
+  Mono<Void> remove(Credit credit);
 
-     Mono<Credit> findByPersonClientId(String clientID);
+  Mono<Void> inactive(String id);
+
+  Flux<Credit> fetchCreditsByClientName(String name);
+
+  Flux<Credit> findByBusinessClientId(String clientID);
+
+  Mono<Credit> findByPersonClientId(String clientID);
 
 }
 

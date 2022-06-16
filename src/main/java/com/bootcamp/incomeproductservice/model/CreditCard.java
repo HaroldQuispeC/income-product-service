@@ -13,13 +13,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "CreditCard")
 //@Entity
 public class CreditCard {
-    @Id
-    private String creditCardID;
-    private String creditID;
-    private String financialCompany;
-    private String creditCardSN;
-    private LocalDateTime startDate;
-    private LocalDateTime expirationDate;
-    private String status;
-    private boolean active;
+  @Id
+  private String creditCardID;
+  private String creditID;
+  private String financialCompany;
+  private String creditCardSN;
+  private LocalDateTime startDate;
+  private LocalDateTime expirationDate;
+  private String status;
+  private boolean active;
 }

@@ -23,7 +23,8 @@ import org.springframework.stereotype.Repository;
         */
 
 @Repository
-public interface IncomeAccountTypeRepository extends ReactiveMongoRepository<IncomeAccountType,String> {
+public interface IncomeAccountTypeRepository
+        extends ReactiveMongoRepository<IncomeAccountType,String> {
 
 }
 

@@ -11,19 +11,19 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @Data
 @Document(collection = "Credit")
-//@Entity
+
 public class Credit {
-    @Id
-    private String creditID;
-    private String clientID;
-    private IncomeAccountType incomeAccountType;
-    private String creditSN;
-    private double creditLimit;
-    private double debt;
-    private double balance;
-    private int billingCycle;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
-    private String status;
-    private boolean active;
+  @Id
+  private String creditID;
+  private String clientID;
+  private IncomeAccountType incomeAccountType;
+  private String creditSN;
+  private double creditLimit;
+  private double debt;
+  private double balance;
+  private int billingCycle;
+  private LocalDateTime startDate;
+  private LocalDateTime endDate;
+  private String status;
+  private boolean active;
 }
