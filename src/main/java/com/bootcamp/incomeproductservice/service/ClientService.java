@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public interface ClientService {
   @RequestMapping(method = RequestMethod.GET, value = "/")
   @Headers("Content-Type: application/json")
-  public List<Client> getClients();
+  List<Client> getClients();
 
   @RequestMapping(method = RequestMethod.GET, value = "/findByDocument/{dni}")
   @Headers("Content-Type: application/json")
-  public Client findByDocument(@PathVariable("dni") String dni);
+  Client findByDocument(@PathVariable("dni") String dni);
 
   @RequestMapping(method = RequestMethod.GET, value = "/findByRuc/{ruc}")
   @Headers("Content-Type: application/json")
-  public Business findByRuc(@PathVariable("ruc") String ruc);
+  Business findByRuc(@PathVariable("ruc") String ruc);
 }

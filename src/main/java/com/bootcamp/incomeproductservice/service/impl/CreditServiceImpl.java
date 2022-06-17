@@ -4,7 +4,6 @@ import com.bootcamp.incomeproductservice.exceptions.ModelException;
 import com.bootcamp.incomeproductservice.model.Client;
 import com.bootcamp.incomeproductservice.model.Constant;
 import com.bootcamp.incomeproductservice.model.Credit;
-import com.bootcamp.incomeproductservice.model.IncomeAccountType;
 import com.bootcamp.incomeproductservice.repository.CreditRepository;
 import com.bootcamp.incomeproductservice.repository.IncomeAccountTypeRepository;
 import com.bootcamp.incomeproductservice.service.ClientService;
@@ -35,52 +34,53 @@ public class CreditServiceImpl implements CreditService {
   @Override
   public Mono<Credit> create(Credit credit) {
 
-    try {
-      if (credit == null) {
-        throw new ModelException("Credit object null or invalid");
-      }
 
-      if (credit.getClientID().isEmpty()) {
-        throw new ModelException("Id Client null or invalid");
-      }
-
-      if (credit.getIncomeAccountType() == null) {
-        throw new ModelException("IncomeAccountType associated to client is null or invalid");
-      }
-
-      String incomeAccountTypeID = credit.getIncomeAccountType().getIncomeAccountTypeID().trim();
-      if (incomeAccountTypeID.isEmpty()) {
-        throw new ModelException("IncomeAccountType ID associated to client is null or invalid");
-      }
-
-      List<String> types = new ArrayList<>();
-      types.add(Constant.IncomeAccountTypeId.PERSONAL_CREDIT_ID.type);
-      types.add(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.type);
-
-      if (types.contains(incomeAccountTypeID)) {
-        throw new ModelException("IncomeAccountType ID associated to client is not valid");
-      }
-
-      Mono<IncomeAccountType> maxIncomes = incomeAccountTypeRepository
-                              .findById(incomeAccountTypeID).single();
-
-      Mono<Long> countCreditsByClient = creditRepository.findAll()
-                      .filter(c -> c.isActive() && c.getClientID()
-                      .equalsIgnoreCase(credit.getClientID())
-                      && c.getIncomeAccountType()
-                      .getIncomeAccountTypeID()
-                      .equalsIgnoreCase(incomeAccountTypeID)
-              ).count();
-
-      // validacion de numero
-      // de productos activos por tipo de cliente
-
-    } catch (RuntimeException ex) {
-      throw new RuntimeException(ex);
+    if (credit == null) {
+      throw new ModelException("Credit object null or invalid");
     }
 
-    logger.info("Create entity credit");
-    return creditRepository.save(credit);
+    if (credit.getClientID().isEmpty()) {
+      throw new ModelException("Id Client null or invalid");
+    }
+
+    if (credit.getIncomeAccountType() == null) {
+      throw new ModelException("IncomeAccountType associated to client is null or invalid");
+    }
+
+    String incomeAccountTypeID = credit.getIncomeAccountType().getIncomeAccountTypeID().trim();
+    if (incomeAccountTypeID.isEmpty()) {
+      throw new ModelException("IncomeAccountType ID associated to client is null or invalid");
+    }
+
+    List<String> types = new ArrayList<>();
+    types.add(Constant.IncomeAccountTypeId.PERSONAL_CREDIT_ID.type);
+    types.add(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.type);
+
+    if (!types.contains(incomeAccountTypeID)) {
+      throw new ModelException("IncomeAccountType ID associated to client is not valid");
+    }
+
+    // validacion de numero de productos activos por tipo de cliente
+    Integer maxIncomes = incomeAccountTypeRepository
+            .findById(incomeAccountTypeID)
+            .single()
+            .block().getMaximumProductsAllowed();
+
+    return creditRepository.findAll()
+            .filter(c -> c.isActive() && c.getClientID()
+                    .equalsIgnoreCase(credit.getClientID())
+                    && c.getIncomeAccountType()
+                    .getIncomeAccountTypeID()
+                    .equalsIgnoreCase(incomeAccountTypeID)
+            ).count().flatMap(x -> {
+              if (maxIncomes != null && x >= maxIncomes) {
+                throw new ModelException("Max. number of accounts "
+                        + " associated to client " + credit.getClientID() + " has been reached.");
+              }
+
+              logger.info("Create entity credit");
+              return creditRepository.save(credit);
+            });
   }
 
   @Override
@@ -98,21 +98,23 @@ public class CreditServiceImpl implements CreditService {
 
   /**
    * findByBusinessClientId method.
+   *
    * @param id String
-   * @return
+   * @return Flux Credit
    */
   public Flux<Credit> findByBusinessClientId(String id) {
     logger.info("Find credit (income-product) by Business Client");
     return creditRepository.findAll()
-                    .filter(c -> c.isActive() && c.getClientID().equalsIgnoreCase(id)
+            .filter(c -> c.isActive() && c.getClientID().equalsIgnoreCase(id)
                     && c.getIncomeAccountType().getIncomeAccountTypeID()
                     .equals(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.type));
   }
 
   /**
    * findByPersonClientId method.
+   *
    * @param id String
-   * @return
+   * @return Mono Credit
    */
   public Mono<Credit> findByPersonClientId(String id) {
     logger.info("Find credit (income-product) by Person Client");
@@ -136,6 +138,33 @@ public class CreditServiceImpl implements CreditService {
   public Mono<Credit> update(Credit credit) {
     logger.info("Updating credit entity");
     return creditRepository.save(credit);
+  }
+
+  /**
+   * Updating credit entity with id.
+   *
+   * @param id     String
+   * @param credit Credit
+   * @return
+   */
+  public Mono<Credit> update(String id, Credit credit) {
+    logger.info("Updating credit entity with id");
+    return creditRepository.findById(id)
+            .map(c -> {
+              c.setStatus(credit.getStatus().trim());
+              c.setActive(credit.isActive());
+
+              if (credit.getStartDate() != null) {
+                c.setStartDate(credit.getStartDate());
+              }
+              if (credit.getEndDate() != null) {
+                c.setEndDate(credit.getEndDate());
+              }
+              c.setBillingCycle(credit.getBillingCycle());
+              c.setCreditLimit(credit.getCreditLimit());
+              c.setDebt(credit.getDebt());
+              return creditRepository.save(c);
+            }).then(Mono.empty());
   }
 
   @Override
@@ -168,7 +197,9 @@ public class CreditServiceImpl implements CreditService {
     });
   }
 
-  /** fetchCreditsByClientName method.
+  /**
+   * fetchCreditsByClientName method.
+   *
    * @param name String
    * @return
    */
@@ -183,15 +214,15 @@ public class CreditServiceImpl implements CreditService {
 
     Optional<Client> optBusiness = clients.stream().filter(client ->
                     client.getClientType()
-                    .equals(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.type)
-                    && client.getBusiness()
-                    .getBusinessName()
-                    .toLowerCase()
-                    .contains(name.toLowerCase()))
-                    .findFirst();
+                            .equals(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.type)
+                            && client.getBusiness()
+                            .getBusinessName()
+                            .toLowerCase()
+                            .contains(name.toLowerCase()))
+            .findFirst();
 
     Optional<Client> optPersonal = clients.stream().filter(client ->
-                    client.getClientType()
+            client.getClientType()
                     .equals(Constant.IncomeAccountTypeId.PERSONAL_CREDIT_ID.type)
                     && client.getNaturalPerson().getName()
                     .toLowerCase().concat(" " + client.getNaturalPerson().getLastName())
