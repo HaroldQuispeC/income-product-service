@@ -11,11 +11,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @Data
 @Document(collection = "CreditCard")
-//@Entity
 public class CreditCard {
   @Id
   private String creditCardID;
-  private String creditID;
+  private Credit credit;
   private String financialCompany;
   private String creditCardSN;
   private LocalDateTime expirationDate;

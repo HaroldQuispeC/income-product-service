@@ -67,9 +67,14 @@ public class CreditCardController {
     return creditCardService.remove(id);
   }
 
+  /**
+   * delete method.
+   * @param card CreditCard
+   * @return Mono Void
+   */
   @DeleteMapping
-  public Mono<Void> delete(@RequestBody CreditCard credit) {
-    return creditCardService.remove(credit);
+  public Mono<Void> delete(@RequestBody CreditCard card) {
+    return creditCardService.remove(card);
   }
 
   @PostMapping("/{id}/inactive")

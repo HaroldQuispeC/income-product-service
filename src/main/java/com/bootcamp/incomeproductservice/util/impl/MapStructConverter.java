@@ -4,7 +4,6 @@ import com.bootcamp.incomeproductservice.model.Credit;
 import com.bootcamp.incomeproductservice.model.dto.CreditDto;
 import com.bootcamp.incomeproductservice.util.DtoConverter;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper

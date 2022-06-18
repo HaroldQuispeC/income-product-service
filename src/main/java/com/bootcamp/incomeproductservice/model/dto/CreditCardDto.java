@@ -13,7 +13,6 @@ public class CreditCardDto {
   private String creditID;
   private String financialCompany;
   private String creditCardSN;
-  private LocalDateTime startDate;
   private LocalDateTime expirationDate;
   private String status;
   private boolean active;

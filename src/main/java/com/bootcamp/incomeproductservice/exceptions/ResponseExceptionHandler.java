@@ -2,8 +2,6 @@ package com.bootcamp.incomeproductservice.exceptions;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -16,23 +14,24 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RestController
 public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
 
-  private static final Logger logger = LoggerFactory.getLogger(ResponseExceptionHandler.class);
-
   /**
    * handleModelException method.
+   *
    * @param model ModelException
-   * @param web WebRequest
+   * @param web   WebRequest
    * @return
    */
   @ExceptionHandler(ModelException.class)
-  public final ResponseEntity<ExceptionResponse>
-              handleModelException(ModelException model, WebRequest web) {
+  public final ResponseEntity<ExceptionResponse> handleModelException(
+          ModelException model, WebRequest web) {
     ExceptionResponse exception = new ExceptionResponse(
-                                  LocalDateTime.now(),
-                                  model.getMessage(),
-                                  web.getDescription(false));
+            LocalDateTime.now(),
+            model.getMessage(),
+            web.getDescription(false));
 
-    logger.error(model.getMessage() + " - " + Arrays.toString(model.getStackTrace()));
+    logger.error(String.format("%s - %s",
+                              model.getMessage(),
+                              Arrays.toString(model.getStackTrace())));
     return new ResponseEntity<>(exception, HttpStatus.NOT_FOUND);
   }
 }

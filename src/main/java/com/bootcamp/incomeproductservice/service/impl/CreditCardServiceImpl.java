@@ -8,6 +8,7 @@ import com.bootcamp.incomeproductservice.repository.CreditCardRepository;
 import com.bootcamp.incomeproductservice.repository.CreditRepository;
 import com.bootcamp.incomeproductservice.service.ClientService;
 import com.bootcamp.incomeproductservice.service.CreditCardService;
+import com.bootcamp.incomeproductservice.util.Util;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,12 +32,58 @@ public class CreditCardServiceImpl implements CreditCardService {
 
   @Override
   public Mono<CreditCard> create(CreditCard card) {
+
+    String newSn = "";
+
+    if (card == null) {
+      throw new ModelException("Credit card object null or invalid");
+    }
+
+    if (card.getCredit() == null) {
+      throw new ModelException("Credit null or invalid");
+    }
+
+    if (card.getFinancialCompany().isEmpty()) {
+      throw new ModelException("FinancialCompany null or invalid");
+    }
+
+    if (card.getFinancialCompany().equalsIgnoreCase(Constant.FinancialCompany.MASTERCARD.type)) {
+      newSn += Constant.CreditCardSnPrefix.MASTERCARD.type;
+    }
+
+    if (card.getFinancialCompany().equalsIgnoreCase(Constant.FinancialCompany.VISA.type)) {
+      newSn += Constant.CreditCardSnPrefix.VISA.type;
+    }
+
+    // Verificar si existe credito relacionado a un cliente
+    Mono<Boolean> cardsXCredit = creditCardRepository
+            .findAll().any(c -> c.getCredit().getCreditID()
+                    .equals(card.getCredit().getCreditID())
+                    && c.isActive());
+    /*
+    if (cardsXCredit != null) {
+      throw new ModelException("Existing cards for this credit line");
+    }*/
+
+    Util.Random random = new Util.Random();
+    newSn = String.format("%s-%s", newSn, random.getNumericString(4, 3, "-"));
+    card.setCreditCardSN(newSn);
+
+    card.setStatus("ACTIVE");
+    card.setActive(true);
+
     logger.info("Create entity credit card");
     return creditCardRepository.save(card);
   }
 
   @Override
   public Mono<Void> createList(List<CreditCard> cards) {
+
+    if (cards == null || cards.isEmpty()) {
+      logger.info("Empty list of cards");
+      return Mono.just(null);
+    }
+
     logger.info("Create list of credit card entity");
     creditCardRepository.saveAll(cards).subscribe();
     return Mono.just("Adding credit card list").then();
@@ -68,14 +115,16 @@ public class CreditCardServiceImpl implements CreditCardService {
     }
 
     id = id.isEmpty() ? "" : id.trim();
-    final String _id = id;
+    final String _clientId = id;
 
-    if (_id == "") {
+    if (_clientId.equals("")) {
       throw new ModelException("Invalid Id");
     }
 
-    boolean exists = clients.stream().anyMatch(x -> x.getClientType().trim().equals("1")
-            && x.getIdClient().equals(_id));
+    boolean exists = clients.stream().anyMatch(x -> x.getClientType()
+            .getClientTypeId().trim()
+            .equals(Constant.ClientType.NATURAL_PERSON.type)
+            && x.getIdClient().equals(_clientId));
 
     if (!exists) {
       throw new ModelException("No personal clients found");
@@ -84,10 +133,11 @@ public class CreditCardServiceImpl implements CreditCardService {
     logger.info("Credit cards associated to Person Clients by id");
 
     return creditRepository.findAll()
-            .filter(x -> x.getClientID().equals(_id))
+            .filter(x -> x.getClientID().equals(_clientId))
             .flatMap(y -> creditCardRepository
                     .findAll()
-                    .filter(z -> z.getCreditID().equals(y.getCreditID())));
+                    .filter(z -> z.getCredit().getCreditID()
+                            .equals(y.getCreditID())));
   }
 
   @Override
@@ -135,11 +185,11 @@ public class CreditCardServiceImpl implements CreditCardService {
     clientID = clientID.isEmpty() ? "" : clientID.trim();
     final String _id = clientID;
 
-    if (_id == "") {
+    if (_id.equals("")) {
       throw new ModelException("Invalid Id");
     }
 
-    boolean exists = clients.stream().anyMatch(x -> x.getClientType().trim()
+    boolean exists = clients.stream().anyMatch(x -> x.getClientType().getClientTypeId().trim()
             .equals(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.type)
             && x.getIdClient().equals(_id));
 
@@ -151,9 +201,16 @@ public class CreditCardServiceImpl implements CreditCardService {
             .filter(x -> x.getClientID().trim().equals(_id))
             .flatMap(y -> creditCardRepository
                     .findAll()
-                    .filter(z -> z.getCreditID().trim().equals(y.getCreditID().trim())));
+                    .filter(z -> z.getCredit().getCreditID().trim()
+                            .equals(y.getCreditID().trim())));
   }
 
+  /**
+   * Inactive method.
+   *
+   * @param id String
+   * @return Mono Void
+   */
   @Override
   public Mono<Void> inactive(String id) {
     logger.info("Set credit card to inactive state");
@@ -165,5 +222,4 @@ public class CreditCardServiceImpl implements CreditCardService {
               return creditCardRepository.save(card).then();
             });
   }
-
 }

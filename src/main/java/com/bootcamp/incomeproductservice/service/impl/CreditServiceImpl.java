@@ -8,8 +8,10 @@ import com.bootcamp.incomeproductservice.repository.CreditRepository;
 import com.bootcamp.incomeproductservice.repository.IncomeAccountTypeRepository;
 import com.bootcamp.incomeproductservice.service.ClientService;
 import com.bootcamp.incomeproductservice.service.CreditService;
+import com.bootcamp.incomeproductservice.util.Util;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +42,7 @@ public class CreditServiceImpl implements CreditService {
     }
 
     if (credit.getClientID().isEmpty()) {
-      throw new ModelException("Id Client null or invalid");
+      throw new ModelException("Client ID null or invalid");
     }
 
     if (credit.getIncomeAccountType() == null) {
@@ -60,11 +62,42 @@ public class CreditServiceImpl implements CreditService {
       throw new ModelException("IncomeAccountType ID associated to client is not valid");
     }
 
+    String newSn = "";
+
+    if (credit.getIncomeAccountType() == null) {
+      throw new ModelException("IncomeAccountType associated is null or invalid");
+    }
+
+    if (credit.getBalance() > credit.getCreditLimit()) {
+      throw new ModelException("Balance Account can not overcome limit of credit.");
+    }
+
+    if (credit.getIncomeAccountType()
+            .getIncomeAccountTypeID()
+            .equalsIgnoreCase(Constant.IncomeAccountTypeId.PERSONAL_CREDIT_ID.type)) {
+      newSn += Constant.CreditSnPrefix.PERSONAL_CREDIT.type;
+    }
+
+    if (credit.getIncomeAccountType()
+            .getIncomeAccountTypeID()
+            .equalsIgnoreCase(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.type)) {
+      newSn += Constant.CreditSnPrefix.BUSINESS_CREDIT.type;
+    }
+
+    Util.Random random = new Util.Random();
+    newSn = String.format("%s-%s-%s",
+            newSn,
+            random.getNumericString(4),
+            random.getNumericString(10));
+    credit.setCreditSN(newSn);
+    credit.setStatus("ACTIVE");
+    credit.setActive(true);
+
     // validacion de numero de productos activos por tipo de cliente
-    Integer maxIncomes = incomeAccountTypeRepository
+    Integer maxIncomes = Objects.requireNonNull(incomeAccountTypeRepository
             .findById(incomeAccountTypeID)
             .single()
-            .block().getMaximumProductsAllowed();
+            .block()).getMaximumProductsAllowed();
 
     return creditRepository.findAll()
             .filter(c -> c.isActive() && c.getClientID()
@@ -126,6 +159,10 @@ public class CreditServiceImpl implements CreditService {
     ).singleOrEmpty();
   }
 
+  /**
+   * findAll method.
+   * @return
+   */
   @Override
   public Flux<Credit> findAll() {
     logger.info("Find all credit entities");
@@ -134,6 +171,11 @@ public class CreditServiceImpl implements CreditService {
             .filter(c -> c.isActive());
   }
 
+  /**
+   * update method.
+   * @param credit Credit
+   * @return
+   */
   @Override
   public Mono<Credit> update(Credit credit) {
     logger.info("Updating credit entity");
@@ -236,10 +278,6 @@ public class CreditServiceImpl implements CreditService {
       return findByBusinessClientId(optBusiness.get().getIdClient());
     }
 
-    if (optPersonal.isPresent()) {
-      return findByPersonClientId(optPersonal.get().getIdClient()).flux();
-    }
-
-    return Flux.empty();
+    return findByPersonClientId(optPersonal.get().getIdClient()).flux();
   }
 }

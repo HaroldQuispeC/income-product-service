@@ -15,8 +15,6 @@ public interface CreditService {
 
   Mono<Credit> findById(String creditID);
 
-  //Mono<CreditDto> findDtoById(String creditID);
-
   Flux<Credit> findAll();
 
   Mono<Credit> update(Credit credit);
