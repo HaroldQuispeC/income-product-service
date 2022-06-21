@@ -1,8 +1,10 @@
 package com.bootcamp.incomeproductservice.util;
 
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 public class Util {
 
@@ -18,7 +20,7 @@ public class Util {
      */
     public String getNumericString(int randomLength) {
       List<String> numbers = Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
-      long poolSize = numbers.stream().count();
+      int poolSize = (int)numbers.stream().count();
 
       if (randomLength <= 0) {
         return "";
@@ -26,9 +28,10 @@ public class Util {
 
       String[] newNumber;
       newNumber = new String[randomLength];
+      SecureRandom random = new SecureRandom();
 
       return Arrays.stream(newNumber).map(item -> {
-        int index = (int) (poolSize * Math.random());
+        int index = random.nextInt(poolSize - 1);
         item = numbers.get(index);
         return item;
       }).map(Object::toString).collect(Collectors.joining());
@@ -50,18 +53,22 @@ public class Util {
         return "";
       }
 
+      SecureRandom random = new SecureRandom();
       for (int i = 0; i < numberBlocks; i++) {
-        long poolSize = numbers.stream().count();
+        int poolSize = (int)numbers.stream().count();
         String[] newNumber;
         newNumber = new String[randomLength];
         blocks[i] = Arrays.stream(newNumber).map(item -> {
-          int index = (int) (poolSize * Math.random());
+          int index = random.nextInt(poolSize - 1);
           item = numbers.get(index);
           return item;
         }).map(Object::toString).collect(Collectors.joining());
       }
 
-      return Arrays.stream(blocks).map(Object::toString).collect(Collectors.joining(separator));
+      return Arrays
+              .stream(blocks)
+              .map(Object::toString)
+              .collect(Collectors.joining(separator));
     }
   }
 }

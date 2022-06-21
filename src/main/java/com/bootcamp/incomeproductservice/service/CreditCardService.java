@@ -26,7 +26,11 @@ public interface CreditCardService {
 
   Mono<Void> inactive(String id);
 
-  Flux<Object> findByBusinessClientId(String id);
+  Flux<CreditCard> findByBusinessClientId(String id);
 
   Flux<CreditCard> findByPersonClientId(String id);
+
+  Flux<CreditCard> findByBusinessClient(String ruc);
+
+  Flux<CreditCard> findByPersonClient(String dni);
 }

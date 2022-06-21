@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -23,7 +24,7 @@ public class CreditCardController {
   private CreditCardService creditCardService;
 
   @GetMapping("{id}")
-  public Mono<CreditCard> findbyId(@PathVariable("id") String id) {
+  public Mono<CreditCard> findById(@PathVariable("id") String id) {
     return creditCardService.findById(id);
   }
 
@@ -33,13 +34,25 @@ public class CreditCardController {
   }
 
   @GetMapping("/business-client/{id}")
-  public Flux<Object> findByBusinessClientId(@PathVariable("id") String id) {
+  public Flux<CreditCard> findByBusinessClientId(@PathVariable("id") String id) {
     return creditCardService.findByBusinessClientId(id);
   }
 
   @GetMapping("/person-client/{id}")
   public Flux<CreditCard> findByPersonClientId(@PathVariable("id") String id) {
     return creditCardService.findByPersonClientId(id);
+  }
+
+  @GetMapping("/business-client/search")
+  public Flux<CreditCard> findByBusinessClient(@RequestParam(value = "ruc",
+         required = true) String ruc) {
+    return creditCardService.findByBusinessClient(ruc);
+  }
+
+  @GetMapping("/person-client/search")
+  public Flux<CreditCard> findByPersonClient(@RequestParam(value = "dni",
+          required = true) String dni) {
+    return creditCardService.findByPersonClient(dni);
   }
 
   @PostMapping
@@ -81,4 +94,5 @@ public class CreditCardController {
   public Mono<Void> inactive(@PathVariable("id") String id) {
     return creditCardService.inactive(id);
   }
+
 }

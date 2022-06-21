@@ -3,6 +3,7 @@ package com.bootcamp.incomeproductservice.service.impl;
 import com.bootcamp.incomeproductservice.exceptions.ModelException;
 import com.bootcamp.incomeproductservice.model.Client;
 import com.bootcamp.incomeproductservice.model.Constant;
+import com.bootcamp.incomeproductservice.model.Credit;
 import com.bootcamp.incomeproductservice.model.CreditCard;
 import com.bootcamp.incomeproductservice.repository.CreditCardRepository;
 import com.bootcamp.incomeproductservice.repository.CreditRepository;
@@ -39,10 +40,6 @@ public class CreditCardServiceImpl implements CreditCardService {
       throw new ModelException("Credit card object null or invalid");
     }
 
-    if (card.getCredit() == null) {
-      throw new ModelException("Credit null or invalid");
-    }
-
     if (card.getFinancialCompany().isEmpty()) {
       throw new ModelException("FinancialCompany null or invalid");
     }
@@ -55,15 +52,16 @@ public class CreditCardServiceImpl implements CreditCardService {
       newSn += Constant.CreditCardSnPrefix.VISA.type;
     }
 
-    // Verificar si existe credito relacionado a un cliente
-    Mono<Boolean> cardsXCredit = creditCardRepository
-            .findAll().any(c -> c.getCredit().getCreditID()
-                    .equals(card.getCredit().getCreditID())
-                    && c.isActive());
-    /*
-    if (cardsXCredit != null) {
-      throw new ModelException("Existing cards for this credit line");
-    }*/
+    // Verificar si ya existe credito relacionado a un cliente
+    creditCardRepository
+            .findAll().any(anyCard -> anyCard.getCreditID()
+            .equals(card.getCreditID())
+            && anyCard.isActive()).map(condition -> {
+              if (Boolean.TRUE.equals(condition)) {
+                throw new RuntimeException("Existing cards for this credit line");
+              }
+              return condition;
+            });
 
     Util.Random random = new Util.Random();
     newSn = String.format("%s-%s", newSn, random.getNumericString(4, 3, "-"));
@@ -121,8 +119,8 @@ public class CreditCardServiceImpl implements CreditCardService {
       throw new ModelException("Invalid Id");
     }
 
-    boolean exists = clients.stream().anyMatch(x -> x.getClientType()
-            .getClientTypeId().trim()
+    boolean exists = clients.stream().anyMatch(x -> x.getClientType().trim()
+            //.getClientTypeId().trim()
             .equals(Constant.ClientType.NATURAL_PERSON.type)
             && x.getIdClient().equals(_clientId));
 
@@ -133,11 +131,39 @@ public class CreditCardServiceImpl implements CreditCardService {
     logger.info("Credit cards associated to Person Clients by id");
 
     return creditRepository.findAll()
-            .filter(x -> x.getClientID().equals(_clientId))
-            .flatMap(y -> creditCardRepository
+            .filter(credit -> credit.getClientID().equals(_clientId))
+            .flatMap(card -> creditCardRepository
                     .findAll()
-                    .filter(z -> z.getCredit().getCreditID()
-                            .equals(y.getCreditID())));
+                    .filter(anyCard -> anyCard.getCreditID()
+                            .equals(card.getCreditID())));
+  }
+
+  /**
+   * findByPersonClient method.
+   * @param dni String
+   * @return CreditCard
+   */
+  @Override
+  public Flux<CreditCard> findByPersonClient(String dni) {
+    Client client = feignClientClient.findByDocument(dni);
+    if (client == null) {
+      throw new ModelException(String.format("No natural person with DNI {0} found.", dni));
+    }
+
+    final String _clientId = client.getIdClient().trim();
+
+    if (_clientId.equals("")) {
+      throw new ModelException("Invalid Id");
+    }
+
+    logger.info("Credit cards associated to Person Clients by id");
+
+    return creditRepository.findAll()
+            .filter(credit -> credit.getClientID().equals(_clientId))
+            .flatMap(card -> creditCardRepository
+                    .findAll()
+                    .filter(anyCard -> anyCard.getCreditID()
+                            .equals(card.getCreditID())));
   }
 
   @Override
@@ -174,7 +200,7 @@ public class CreditCardServiceImpl implements CreditCardService {
    * @return Multiple objects
    */
   @Override
-  public Flux<Object> findByBusinessClientId(String clientID) {
+    public Flux<CreditCard> findByBusinessClientId(String clientID) {
     logger.info("Find credit cards associated to Business Client by id");
 
     List<Client> clients = feignClientClient.getClients();
@@ -189,9 +215,11 @@ public class CreditCardServiceImpl implements CreditCardService {
       throw new ModelException("Invalid Id");
     }
 
-    boolean exists = clients.stream().anyMatch(x -> x.getClientType().getClientTypeId().trim()
-            .equals(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.type)
-            && x.getIdClient().equals(_id));
+    boolean exists = clients.stream().anyMatch(x ->
+            //x.getClientType().getClientTypeId().trim()
+            x.getClientType().trim()
+                    .equals(Constant.IncomeAccountTypeId.BUSINESS_CREDIT_ID.type)
+                    && x.getIdClient().equals(_id));
 
     if (!exists) {
       throw new ModelException("No business clients found");
@@ -199,10 +227,27 @@ public class CreditCardServiceImpl implements CreditCardService {
 
     return creditRepository.findAll()
             .filter(x -> x.getClientID().trim().equals(_id))
-            .flatMap(y -> creditCardRepository
+            .flatMap(credit -> creditCardRepository
                     .findAll()
-                    .filter(z -> z.getCredit().getCreditID().trim()
-                            .equals(y.getCreditID().trim())));
+                    .filter(card -> card.getCreditID().trim()
+                            .equals(credit.getCreditID().trim())));
+  }
+
+  @Override
+  public Flux<CreditCard> findByBusinessClient(String ruc) {
+    logger.info("Find credit cards associated to Business Client by id");
+
+    Client client = feignClientClient.findByRuc(ruc);
+    if (client == null) {
+      throw new ModelException(String.format("No business client with RUC %s found.", ruc));
+    }
+
+    return creditRepository.findAll()
+            .filter(x -> x.getClientID().trim().equals(client.getIdClient()))
+            .flatMap(credit -> creditCardRepository
+                    .findAll()
+                    .filter(card -> card.getCreditID().trim()
+                            .equals(credit.getCreditID().trim())));
   }
 
   /**

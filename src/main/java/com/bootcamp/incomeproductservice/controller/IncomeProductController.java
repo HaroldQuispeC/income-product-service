@@ -36,7 +36,7 @@ public class IncomeProductController {
 
   @GetMapping("/search")
   public Flux<Credit> fetchCreditsByClientName(@RequestParam(value = "name",
-                                                required = true) String name) {
+          required = true) String name) {
     return creditService.fetchCreditsByClientName(name);
   }
 
@@ -63,6 +63,11 @@ public class IncomeProductController {
   @PutMapping
   public Mono<Credit> update(@RequestBody Credit credit) {
     return creditService.update(credit);
+  }
+
+  @PutMapping("{id}")
+  public Mono<Credit> update(@PathVariable("id") String id, @RequestBody Credit credit) {
+    return creditService.update(id, credit);
   }
 
   @PatchMapping

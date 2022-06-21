@@ -105,8 +105,8 @@ public class CreditServiceImpl implements CreditService {
                     && c.getIncomeAccountType()
                     .getIncomeAccountTypeID()
                     .equalsIgnoreCase(incomeAccountTypeID)
-            ).count().flatMap(x -> {
-              if (maxIncomes != null && x >= maxIncomes) {
+            ).count().flatMap(products -> {
+              if (maxIncomes != null && products >= maxIncomes) {
                 throw new ModelException("Max. number of accounts "
                         + " associated to client " + credit.getClientID() + " has been reached.");
               }
@@ -202,6 +202,7 @@ public class CreditServiceImpl implements CreditService {
               if (credit.getEndDate() != null) {
                 c.setEndDate(credit.getEndDate());
               }
+              c.setBalance(credit.getBalance());
               c.setBillingCycle(credit.getBillingCycle());
               c.setCreditLimit(credit.getCreditLimit());
               c.setDebt(credit.getDebt());

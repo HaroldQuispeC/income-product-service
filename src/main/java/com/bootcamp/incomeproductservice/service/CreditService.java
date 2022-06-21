@@ -19,6 +19,8 @@ public interface CreditService {
 
   Mono<Credit> update(Credit credit);
 
+  Mono<Credit> update(String id, Credit credit);
+
   Mono<Credit> change(Credit credit);
 
   Mono<Void> remove(String creditID);

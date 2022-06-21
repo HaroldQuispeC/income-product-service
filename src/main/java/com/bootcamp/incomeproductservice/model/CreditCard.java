@@ -14,7 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class CreditCard {
   @Id
   private String creditCardID;
-  private Credit credit;
+  private String creditID;
   private String financialCompany;
   private String creditCardSN;
   private LocalDateTime expirationDate;
