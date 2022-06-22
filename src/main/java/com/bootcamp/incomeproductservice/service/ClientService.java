@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "client-service",  url = "http://localhost:8080/api/client",
+@FeignClient(name = "GATEWAY-SERVICE/api/client",
             fallback = ClientService.ClientServiceFallback.class)
 public interface ClientService {
   @GetMapping(value = "/")
