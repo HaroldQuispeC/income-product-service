@@ -32,7 +32,7 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
             model.getMessage(),
             web.getDescription(false));
 
-    logger.error(String.format("%s - %s",
+    logger.error(String.format("%1$s - %2$s",
             model.getMessage(),
             Arrays.toString(model.getStackTrace())));
 

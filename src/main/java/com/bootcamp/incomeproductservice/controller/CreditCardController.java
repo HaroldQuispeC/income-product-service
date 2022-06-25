@@ -1,7 +1,9 @@
 package com.bootcamp.incomeproductservice.controller;
 
 import com.bootcamp.incomeproductservice.model.CreditCard;
+import com.bootcamp.incomeproductservice.model.dto.CreditCardDto;
 import com.bootcamp.incomeproductservice.service.CreditCardService;
+import com.bootcamp.incomeproductservice.util.impl.MapStructConverter;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -56,7 +58,8 @@ public class CreditCardController {
   }
 
   @PostMapping
-  public Mono<CreditCard> create(@RequestBody CreditCard card) {
+  public Mono<CreditCard> create(@RequestBody CreditCardDto cardDto) {
+    CreditCard card = MapStructConverter.MAPPER.convert(cardDto);
     return creditCardService.create(card);
   }
 
@@ -66,12 +69,14 @@ public class CreditCardController {
   }
 
   @PutMapping
-  public Mono<CreditCard> update(@RequestBody CreditCard card) {
+  public Mono<CreditCard> update(@RequestBody CreditCardDto cardDto) {
+    CreditCard card = MapStructConverter.MAPPER.convert(cardDto);
     return creditCardService.update(card);
   }
 
   @PatchMapping
-  public Mono<CreditCard> change(@RequestBody CreditCard card) {
+  public Mono<CreditCard> change(@RequestBody CreditCardDto cardDto) {
+    CreditCard card = MapStructConverter.MAPPER.convert(cardDto);
     return creditCardService.change(card);
   }
 
@@ -82,14 +87,20 @@ public class CreditCardController {
 
   /**
    * delete method.
-   * @param card CreditCard
+   * @param cardDto CreditCardDto
    * @return Mono Void
    */
   @DeleteMapping
-  public Mono<Void> delete(@RequestBody CreditCard card) {
+  public Mono<Void> delete(@RequestBody CreditCardDto cardDto) {
+    CreditCard card = MapStructConverter.MAPPER.convert(cardDto);
     return creditCardService.remove(card);
   }
 
+  /**
+   * inactive method.
+   * @param id String
+   * @return Mono Void
+   */
   @PostMapping("/{id}/inactive")
   public Mono<Void> inactive(@PathVariable("id") String id) {
     return creditCardService.inactive(id);

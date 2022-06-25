@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class CreditCardDto {
   private String creditCardID;
-  //private CreditDto credit;
+  private String creditID;
   private String financialCompany;
   private String creditCardSN;
   private LocalDateTime expirationDate;

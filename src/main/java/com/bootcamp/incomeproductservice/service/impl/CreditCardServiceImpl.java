@@ -1,9 +1,9 @@
 package com.bootcamp.incomeproductservice.service.impl;
 
+import com.bootcamp.incomeproductservice.exceptions.CoreException;
 import com.bootcamp.incomeproductservice.exceptions.ModelException;
 import com.bootcamp.incomeproductservice.model.Client;
 import com.bootcamp.incomeproductservice.model.Constant;
-import com.bootcamp.incomeproductservice.model.Credit;
 import com.bootcamp.incomeproductservice.model.CreditCard;
 import com.bootcamp.incomeproductservice.repository.CreditCardRepository;
 import com.bootcamp.incomeproductservice.repository.CreditRepository;
@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class CreditCardServiceImpl implements CreditCardService {
 
+  private static final String INVALID_ID_MESSAGE = "Invalid ID.";
   private static final Logger logger = LoggerFactory.getLogger(CreditCardServiceImpl.class);
   @Autowired
   ClientService feignClientClient;
@@ -58,7 +59,7 @@ public class CreditCardServiceImpl implements CreditCardService {
             .equals(card.getCreditID())
             && anyCard.isActive()).map(condition -> {
               if (Boolean.TRUE.equals(condition)) {
-                throw new RuntimeException("Existing cards for this credit line");
+                throw new CoreException("Existing cards for this credit line");
               }
               return condition;
             });
@@ -116,7 +117,7 @@ public class CreditCardServiceImpl implements CreditCardService {
     final String _clientId = id;
 
     if (_clientId.equals("")) {
-      throw new ModelException("Invalid Id");
+      throw new ModelException(INVALID_ID_MESSAGE);
     }
 
     boolean exists = clients.stream().anyMatch(x -> x.getClientType().trim()
@@ -147,13 +148,13 @@ public class CreditCardServiceImpl implements CreditCardService {
   public Flux<CreditCard> findByPersonClient(String dni) {
     Client client = feignClientClient.findByDocument(dni);
     if (client == null) {
-      throw new ModelException(String.format("No natural person with DNI {0} found.", dni));
+      throw new ModelException(String.format("No natural person with DNI %s found.", dni));
     }
 
     final String _clientId = client.getIdClient().trim();
 
     if (_clientId.equals("")) {
-      throw new ModelException("Invalid Id");
+      throw new ModelException(INVALID_ID_MESSAGE);
     }
 
     logger.info("Credit cards associated to Person Clients by id");
@@ -212,7 +213,7 @@ public class CreditCardServiceImpl implements CreditCardService {
     final String _id = clientID;
 
     if (_id.equals("")) {
-      throw new ModelException("Invalid Id");
+      throw new ModelException(INVALID_ID_MESSAGE);
     }
 
     boolean exists = clients.stream().anyMatch(x ->

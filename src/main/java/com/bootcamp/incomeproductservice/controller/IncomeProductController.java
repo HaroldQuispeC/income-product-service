@@ -1,7 +1,11 @@
 package com.bootcamp.incomeproductservice.controller;
 
 import com.bootcamp.incomeproductservice.model.Credit;
+import com.bootcamp.incomeproductservice.model.dto.CreditDto;
+import com.bootcamp.incomeproductservice.model.dto.IncomeProductsPerClient;
 import com.bootcamp.incomeproductservice.service.CreditService;
+import com.bootcamp.incomeproductservice.service.IncomeProductsService;
+import com.bootcamp.incomeproductservice.util.impl.MapStructConverter;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,8 +28,16 @@ public class IncomeProductController {
   @Autowired
   private CreditService creditService;
 
+  @Autowired
+  private IncomeProductsService incomeProductsService;
+
+  @GetMapping("/products/client/{id}")
+  public Flux<IncomeProductsPerClient> fetchIncomeProductsPerClient(@PathVariable("id") String id) {
+    return incomeProductsService.fetchIncomeProductsPerClient(id);
+  }
+
   @GetMapping("{id}")
-  public Mono<Credit> findbyId(@PathVariable("id") String id) {
+  public Mono<Credit> findById(@PathVariable("id") String id) {
     return creditService.findById(id);
   }
 
@@ -51,7 +63,8 @@ public class IncomeProductController {
   }
 
   @PostMapping
-  public Mono<Credit> create(@RequestBody Credit credit) {
+  public Mono<Credit> create(@RequestBody CreditDto creditDto) {
+    Credit credit = MapStructConverter.MAPPER.convert(creditDto);
     return creditService.create(credit);
   }
 
@@ -61,17 +74,20 @@ public class IncomeProductController {
   }
 
   @PutMapping
-  public Mono<Credit> update(@RequestBody Credit credit) {
+  public Mono<Credit> update(@RequestBody CreditDto creditDto) {
+    Credit credit = MapStructConverter.MAPPER.convert(creditDto);
     return creditService.update(credit);
   }
 
   @PutMapping("{id}")
-  public Mono<Credit> update(@PathVariable("id") String id, @RequestBody Credit credit) {
+  public Mono<Credit> update(@PathVariable("id") String id, @RequestBody CreditDto creditDto) {
+    Credit credit = MapStructConverter.MAPPER.convert(creditDto);
     return creditService.update(id, credit);
   }
 
   @PatchMapping
-  public Mono<Credit> change(@RequestBody Credit credit) {
+  public Mono<Credit> change(@RequestBody CreditDto creditDto) {
+    Credit credit = MapStructConverter.MAPPER.convert(creditDto);
     return creditService.change(credit);
   }
 
@@ -81,7 +97,8 @@ public class IncomeProductController {
   }
 
   @DeleteMapping
-  public Mono<Void> delete(@RequestBody Credit credit) {
+  public Mono<Void> delete(@RequestBody CreditDto creditDto) {
+    Credit credit = MapStructConverter.MAPPER.convert(creditDto);
     return creditService.remove(credit);
   }
 

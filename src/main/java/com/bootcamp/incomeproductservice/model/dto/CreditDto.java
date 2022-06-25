@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class CreditDto extends CreditBase {
-  private String clientID;
+  private String creditID;
   private CreditCardDto creditCard;
 }

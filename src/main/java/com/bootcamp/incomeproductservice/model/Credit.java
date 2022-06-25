@@ -13,7 +13,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Document(collection = "Credit")
-
 public class Credit extends CreditBase {
   @Id
   private String creditID;

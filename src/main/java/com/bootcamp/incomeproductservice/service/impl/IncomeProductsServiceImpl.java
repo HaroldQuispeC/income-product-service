@@ -5,10 +5,7 @@ import com.bootcamp.incomeproductservice.model.Client;
 import com.bootcamp.incomeproductservice.model.Constant;
 import com.bootcamp.incomeproductservice.model.Credit;
 import com.bootcamp.incomeproductservice.model.CreditCard;
-import com.bootcamp.incomeproductservice.model.dto.CreditCardDto;
-import com.bootcamp.incomeproductservice.model.dto.CreditDto;
 import com.bootcamp.incomeproductservice.model.dto.IncomeProductsPerClient;
-import com.bootcamp.incomeproductservice.repository.CreditCardRepository;
 import com.bootcamp.incomeproductservice.service.ClientService;
 import com.bootcamp.incomeproductservice.service.CreditCardService;
 import com.bootcamp.incomeproductservice.service.CreditService;
@@ -19,9 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @Service
 public class IncomeProductsServiceImpl implements IncomeProductsService {
@@ -61,29 +56,31 @@ public class IncomeProductsServiceImpl implements IncomeProductsService {
     incomes = new IncomeProductsPerClient();
     incomes.setClient(MapStructConverter.MAPPER.convert(oldClient));
 
-    Flux<IncomeProductsPerClient> finalFlux = Flux.just(incomes);
+    Flux<IncomeProductsPerClient> fluxClient = Flux.just(incomes);
     Flux<Credit> monoCredit = null;
     Flux<CreditCard> fluxCreditCards = null;
 
-    if (oldClient.getClientType()  //.getClientTypeId()
+    if (oldClient.getClientType()
             .equals(Constant.ClientType.NATURAL_PERSON.type)) {
       monoCredit = creditService.findByPersonClientId(clientID).flux();
-      fluxCreditCards = creditCardService.findByBusinessClientId(clientID);
-      /*
-      finalFlux.subscribe(x -> {
-       x.setCredits( monoCredit.publish() );
-      });
-      ConnectableFlux<CreditCard> creditCardConnectableFlux = creditCards.publish(); */
+      fluxCreditCards = creditCardService.findByPersonClientId(clientID);
     }
 
-    if (oldClient.getClientType()  //.getClientTypeId()
+    if (oldClient.getClientType()
             .equals(Constant.ClientType.BUSINESS.type)) {
       monoCredit = creditService.findByBusinessClientId(clientID);
       fluxCreditCards = creditCardService.findByBusinessClientId(clientID);
     }
 
-
-    finalFlux.subscribe();
+    Flux<IncomeProductsPerClient> finalFlux = null;
+    if (monoCredit != null) {
+      finalFlux = Flux.zip(monoCredit, fluxCreditCards, fluxClient).flatMap(x -> {
+        Credit objCredit = x.getT1();
+        objCredit.setCreditCard(x.getT2());
+        x.getT3().addCredit(MapStructConverter.MAPPER.convert(objCredit));
+        return Flux.just(x.getT3());
+      });
+    }
 
     return finalFlux;
   }

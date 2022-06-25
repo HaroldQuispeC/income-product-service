@@ -31,7 +31,7 @@ public interface ClientService {
   @Component
   class ClientServiceFallback implements ClientService {
 
-    private final String defaultMessage = "Client Service is unavailable at this moment";
+    private static final String DEFAULT_MESSAGE = "Client Service is unavailable at this moment.";
 
     /**
      * getClients fallback method.
@@ -40,7 +40,7 @@ public interface ClientService {
      */
     @Override
     public List<Client> getClients() {
-      throw new FallbackException(String.format("getClients: %s", defaultMessage));
+      throw new FallbackException(String.format("getClients: %s", DEFAULT_MESSAGE));
     }
 
     /**
@@ -51,7 +51,7 @@ public interface ClientService {
      */
     @Override
     public Client findByDocument(String dni) {
-      throw new FallbackException(String.format("findByDocument: %s", defaultMessage));
+      throw new FallbackException(String.format("findByDocument: %s", DEFAULT_MESSAGE));
     }
 
     /**
@@ -62,7 +62,7 @@ public interface ClientService {
      */
     @Override
     public Client findByRuc(String ruc) {
-      throw new FallbackException(String.format("findByRuc: %s", defaultMessage));
+      throw new FallbackException(String.format("findByRuc: %s", DEFAULT_MESSAGE));
     }
   }
 }
